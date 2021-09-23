@@ -1,11 +1,11 @@
 const path = require("path");
 const merge = require("webpack-merge").merge;
-const HtmlWebpacPlugin = require("html-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 const glob = require("glob");
 
 const setMPA = () => {
   const entry = {};
-  const htmlWebpackPlugin = [];
+  const htmlWebpackPlugins = [];
   const entryFile = glob.sync(
     path.join(__dirname, "../../src/components/*/index.js")
   );
@@ -15,18 +15,20 @@ const setMPA = () => {
 
     const name = arr[0].split("/components/")[1].split("/")[0];
     entry[name] = `./${arr[0]}`;
-    // htmlWebpackPlugin.push(
-    //   new HtmlWebpacPlugin({
-    //     template: `./src/index.html`,
-    //     filename: "[name].html",
-    //   })
-    // );
+
+    htmlWebpackPlugins.push(
+      new HtmlWebpackPlugin({
+        template: "./src/index.html",
+        filename: `${name}.html`,
+        inject: false,
+      })
+    );
   });
 
-  return { entry };
+  return { entry, htmlWebpackPlugins };
 };
 
-const { entry = {} } = setMPA();
+const { entry = {}, htmlWebpackPlugins = [] } = setMPA();
 class BaseWebpackConfig {
   constructor() {
     this.__config = this.defaultConfig;
@@ -45,7 +47,7 @@ class BaseWebpackConfig {
     return {
       mode: "development",
       target: "node",
-      devtool: "source-map",
+      devtool: false,
       entry: entry,
       output: {
         filename: "[name].js",
@@ -59,13 +61,27 @@ class BaseWebpackConfig {
             use: "babel-loader",
             exclude: path.resolve(__dirname, "node_modules"),
           },
+          {
+            test: /\.css/,
+            use: [
+              {
+                loader: "css-loader",
+                options: { esModule: false },
+              },
+              {
+                loader: "px2rem-loader",
+                options: { remUnit: 75, remPrecision: 8 },
+              },
+            ],
+          },
         ],
       },
       plugins: [
-        new HtmlWebpacPlugin({
+        new HtmlWebpackPlugin({
           template: "./src/index.html",
           inject: false,
         }),
+        // ...htmlWebpackPlugins,
       ],
     };
   }

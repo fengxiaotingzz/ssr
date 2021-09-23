@@ -1,8 +1,14 @@
 "use strict";
 import React from "react";
 
+import "./index.css";
+
 function Index() {
-  return <div className="search-text">搜索文字的内容11111dfsdf</div>;
+  return (
+    <div className="search-text">
+      <div>1111</div>
+    </div>
+  );
 }
 
 export default <Index />;
